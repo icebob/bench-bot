@@ -190,7 +190,7 @@ function compareResults(masterResult, prResult) {
 				testCompare.badge = `https://img.shields.io/badge/performance-${percentage.replace("-", "--")}%25-${getBadgeColor(percent)}.svg`;
 			} else {
 				testCompare.diff = "-";
-				testCompare.percentage = "skipped";
+				testCompare.percentage = "skip";
 				testCompare.badge = "https://img.shields.io/badge/performance-skipped-lightgrey.svg";
 			}
 
