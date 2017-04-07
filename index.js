@@ -186,7 +186,7 @@ function compareResults(masterResult, prResult) {
 				const percentage = formatNum(percent, 0, true);
 
 				testCompare.diff = formatNum(prRps - masterRps, 0, true);
-				testCompare.percentage = percentage;
+				testCompare.percentage = percentage + "%";
 				testCompare.badge = `https://img.shields.io/badge/performance-${percentage.replace("-", "--")}%25-${getBadgeColor(percent)}.svg`;
 			} else {
 				testCompare.diff = "-";
@@ -223,7 +223,7 @@ const commentTemplate = Handlebars.compile(`
 | Test | Master | PR | Diff | % |
 | ---- | ------ | -- | ---- | - |
 {{#each tests}}
-|**{{name}}**| \`{{masterRps}}\` | \`{{prRps}}\` | \`{{diff}}\` | ![Performance: {{percentage}}%]({{badge}}) |
+|**{{name}}**| \`{{masterRps}}\` | \`{{prRps}}\` | \`{{diff}}\` | [![Performance: {{percentage}}]({{badge}})]() |
 {{/each}}
 
 {{/each}}
