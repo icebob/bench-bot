@@ -111,7 +111,7 @@ function runBenchmark(gitUrl, branch, folder) {
 			return exeq("git clone " + gitUrl + " " + folder, "cd " + folder, "git checkout " + branch, "npm i --quiet")
 				.then(msgs => {
 					return require(path.join(__dirname, folder, SUITE_FILENAME));
-				})
+				});
 		});
 }
 
@@ -161,15 +161,15 @@ function compareResults(masterResult, prResult) {
 
 			if (masterRps && prRps) {
 				const percent = ((prRps - masterRps) * 100.0) / masterRps;
-				const percentage = formatNum(percent, 0, true)
+				const percentage = formatNum(percent, 0, true);
 
 				testCompare.diff = formatNum(prRps - masterRps, 0, true);
 				testCompare.percentage = percentage;
-				testCompare.badge = `https://img.shields.io/badge/performance-${percentage.replace('-', '--')}%25-${getBadgeColor(percent)}.svg`
+				testCompare.badge = `https://img.shields.io/badge/performance-${percentage.replace('-', '--')}%25-${getBadgeColor(percent)}.svg`;
 			} else {
 				testCompare.diff = "-";
 				testCompare.percentage = "";
-				testCompare.badge = `https://img.shields.io/badge/performance-skipped-lightgrey.svg`
+				testCompare.badge = `https://img.shields.io/badge/performance-skipped-lightgrey.svg`;
 			}
 
 			suiteRes.tests.push(testCompare);
