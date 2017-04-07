@@ -253,6 +253,6 @@ function addCommentToPR(number, result) {
 		number,
 		body: commentTemplate(result)
 	}).then(() => {
-		console.info(chalk.yellow.bold(`"Result posted successfully to https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${number}!`));
+		console.info(chalk.yellow.bold(`Result posted successfully to https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${number}`));
 	});
 }
