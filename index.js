@@ -117,7 +117,7 @@ function processPullRequest(payload) {
 			return addResultCommentToPR(prNumber, compared);
 		})
 		.then(() => {
-			console.log(chalk.green.bold("Done!"));
+			console.log(chalk.green.bold("Done!\n\n"));
 		})
 		.catch(err => console.error(err))
 		.then(() => {
@@ -213,17 +213,17 @@ function getBadgeColor(value) {
 }
 
 const commentTemplate = Handlebars.compile(`
-# Benchmark results
+# :checkered_flag: Benchmark results
 
-## {{name}}
+## :memo: {{name}}
 
 {{#each suites}}
-### Suite: {{name}}
+### :zap: Suite: {{name}}
 
-| Test | Master (runs/sec) | PR (runs/sec) | Diff (runs/sec) |
-| ------- | ----- | ------- | ------- |
+| Test | Master | PR | Diff | % |
+| ---- | ------ | -- | ---- | - |
 {{#each tests}}
-|**{{name}}**| \`{{masterRps}}\` | \`{{prRps}}\` | ![Performance: {{percentage}}%]({{badge}}) \`{{diff}}\` |
+|**{{name}}**| \`{{masterRps}}\` | \`{{prRps}}\` | \`{{diff}}\` | ![Performance: {{percentage}}%]({{badge}}) |
 {{/each}}
 
 {{/each}}
