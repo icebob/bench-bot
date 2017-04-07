@@ -75,6 +75,7 @@ app.listen(port, ip, function() {
 	console.log(chalk.green.bold("*** "));
 	console.log(chalk.green.bold("*** Set this URL in Webhooks in Github settings and enable the 'Pull request' events!"));
 	console.log(chalk.green.bold(""));
+
 });
 
 function processPullRequest(payload) {
@@ -84,16 +85,16 @@ function processPullRequest(payload) {
 	if (["opened", "synchronize"].indexOf(payload.action) !== -1) {
 		console.log(chalk.white.bold(`New PR opened! ID: ${prNumber}, Name: ${payload.pull_request.title}`));
 
-		const headGitUrl = payload.pull_request.head.repo.clone_url; // PR repo-ja
-		const headGitBranch = payload.pull_request.head.ref; // PR branch-e
-		const baseGitUrl = payload.pull_request.base.repo.clone_url; // Alap master repo
-		const baseGitBranch = payload.pull_request.base.ref; // Alap repo branch-e
+		const headGitUrl = payload.pull_request.head.repo.clone_url; // Repo of PR
+		const headGitBranch = payload.pull_request.head.ref; // Branch of PR
+		const baseGitUrl = payload.pull_request.base.repo.clone_url; // Base repo
+		const baseGitBranch = payload.pull_request.base.ref; // Base repo branch
 
 		console.log("Base: ", chalk.white.bold(baseGitUrl), "  Branch: ", chalk.magenta.bold(baseGitBranch));
 		console.log("  PR: ", chalk.white.bold(headGitUrl), "  Branch: ", chalk.magenta.bold(headGitBranch));
 
-		let workID = Math.random().toString(36).replace(/[^a-z]+/g, '');
-		console.log("Work ID: " + workID);
+		let workID = Math.random().toString(36).replace(/[^a-z]+/g, "");
+		console.log("Temp folder: " + workID + "\n");
 
 		let folder = "./tmp/" + workID;
 		mkdir.sync(folder);
@@ -113,7 +114,7 @@ function processPullRequest(payload) {
 			// console.log("Compare result:", compared);
 
 			// Create comment on PR
-			return addCommentToPR(prNumber, compared);
+			return addResultCommentToPR(prNumber, compared);
 		})
 		.then(() => {
 			console.log(chalk.green.bold("Done!"));
@@ -246,7 +247,7 @@ const commentTemplate = Handlebars.compile(`
 {{/if}}
 `);
 
-function addCommentToPR(number, result) {
+function addResultCommentToPR(number, result) {
 	return github.issues.createComment({
 		owner: REPO_OWNER,
 		repo: REPO_NAME,
