@@ -187,11 +187,11 @@ function compareResults(masterResult, prResult) {
 
 				testCompare.diff = formatNum(prRps - masterRps, 0, true);
 				testCompare.percentage = percentage + "%";
-				testCompare.badge = `https://img.shields.io/badge/performance-${percentage.replace("-", "--")}%25-${getBadgeColor(percent)}.svg`;
+				testCompare.badge = `https://img.shields.io/badge/perf-${percentage.replace("-", "--")}%25-${getBadgeColor(percent)}.svg`;
 			} else {
 				testCompare.diff = "-";
-				testCompare.percentage = "skip";
-				testCompare.badge = "https://img.shields.io/badge/performance-skipped-lightgrey.svg";
+				testCompare.percentage = "Skip";
+				testCompare.badge = "https://img.shields.io/badge/perf-skip-lightgrey.svg";
 			}
 
 			suiteRes.tests.push(testCompare);
