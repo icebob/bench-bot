@@ -7,18 +7,22 @@ Benchmark runner robot for [Benchmarkify](https://github.com/icebob/benchmarkify
 $ git clone https://github.com/icebob/bench-bot.git
 ```
 
-# Usage
-## Local
-```
-$ npm start
-```
-## Docker
-First set environment variables in `docker-compose.yml`:
+## Environment variables
 * `PORT` - exposed port for server
 * `REPO_OWNER` - owner's username of repository (e.g: icebob)
 * `REPO_NAME` - Repository name (e.g: bench-bot)
 * `SUITE_FILENAME` - [Benchmarkify](https://github.com/icebob/benchmarkify) suite filename with path (e.g: `benchmark/suites/perf.js`)
 * `GITHUB_TOKEN` - Token to access github. You can create one in [Github settings](https://github.com/settings/tokens)
+
+# Usage
+
+## Local
+First set environment variables.
+```
+$ npm start
+```
+## Docker
+First set environment variables in `docker-compose.yml`.
 
 ```
 $ docker-compose build
