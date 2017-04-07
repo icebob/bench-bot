@@ -5,7 +5,7 @@ ADD . .
 
 RUN apk add --no-cache git
 
-RUN npm install
+RUN npm install --production
 
 EXPOSE 4278
 CMD ["node", "index.js"]

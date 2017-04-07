@@ -11,9 +11,7 @@ services:
       - "4278:4278"
     environment:
       PORT: 4278
-      REPO_OWNER: "icebob"
-      REPO_NAME: "benchmark-hook-example"
-      SUITE_FILENAME: "index.js"
-      GITHUB_TOKEN: "xxx"
+      IP: "0.0.0.0"
+    env_file: dc.env
 
     restart: always

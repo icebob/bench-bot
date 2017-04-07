@@ -22,8 +22,7 @@ First set environment variables.
 $ npm start
 ```
 ## Docker
-First set environment variables in `docker-compose.yml`.
-
+Rename the `dc.env.sample` to `dc.env` and set environment variables.
 ```
 $ docker-compose build
 $ docker-compose up -d
