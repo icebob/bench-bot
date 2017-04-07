@@ -1,2 +1,2 @@
 # bench-bot
-Benchmark runner robot.
+Benchmark runner robot

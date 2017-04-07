@@ -1,0 +1,18 @@
+version: "2"
+
+services:
+  node:
+    build:
+      context: .
+    image: bench-bot
+    expose:
+      - 4278
+    ports:
+      - "4278:4278"
+    environment:
+      REPO_OWNER: "icebob"
+      REPO_NAME: "benchmark-hook-example"
+      SUITE_FILENAME: "index.js"
+      GITHUB_TOKEN: "xxx"
+
+    restart: always

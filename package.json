@@ -1,0 +1,33 @@
+{
+  "name": "bench-bot",
+  "version": "0.1.0",
+  "description": "Benchmark runner robot",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js --watch ./index.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/icebob/bench-bot.git"
+  },
+  "keywords": ["benchmark", "runner", "robot"],
+  "author": "Icebob",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/icebob/bench-bot/issues"
+  },
+  "homepage": "https://github.com/icebob/bench-bot#readme",
+  "dependencies": {
+    "benchmarkify": "2.0.0",
+    "body-parser": "1.17.1",
+    "del": "2.2.2",
+    "exeq": "3.0.0",
+    "express": "4.15.2",
+    "github": "9.2.0",
+    "handlebars": "4.0.6",
+    "lodash": "4.17.4",
+    "mkdirp": "0.5.1",
+    "nodemon": "1.11.0"
+  }
+}
