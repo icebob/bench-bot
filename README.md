@@ -1,4 +1,4 @@
-# bench-bot
+# :construction_worker: bench-bot
 Benchmark runner robot for [Benchmarkify](https://github.com/icebob/benchmarkify)
 
 # Installation
