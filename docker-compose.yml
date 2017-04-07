@@ -10,6 +10,7 @@ services:
     ports:
       - "4278:4278"
     environment:
+      PORT: 4278
       REPO_OWNER: "icebob"
       REPO_NAME: "benchmark-hook-example"
       SUITE_FILENAME: "index.js"

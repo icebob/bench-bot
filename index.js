@@ -5,6 +5,7 @@ const path 			= require("path");
 const http 			= require("http");
 const bodyParser	= require("body-parser");
 const mkdir			= require("mkdirp");
+const chalk			= require("chalk");
 
 const _				= require("lodash");
 const Handlebars	= require("handlebars");
@@ -12,7 +13,25 @@ const GitHubApi		= require("github");
 const exeq 			= require("exeq");
 const del 			= require("del");
 
-const { REPO_OWNER, REPO_NAME, SUITE_FILENAME } = process.env;
+
+function fatal(msg) {
+	console.error(chalk.red.bold("FATAL:", msg));
+	process.exit(1);
+}
+
+const { REPO_OWNER, REPO_NAME, SUITE_FILENAME, GITHUB_TOKEN } = process.env;
+
+if (!GITHUB_TOKEN)
+	fatal("Missing github access token! Please generate a token on https://github.com/settings/tokens and set to the GITHUB_TOKEN environment variable!");
+
+if (!REPO_OWNER)
+	fatal("Missing repository owner! Please set REPO_OWNER environment variable!");
+
+if (!REPO_NAME)
+	fatal("Missing repository name! Please set REPO_NAME environment variable!");
+
+if (!SUITE_FILENAME)
+	fatal("Missing benchmarkify suite filename! Please set SUITE_FILENAME environment variable!");
 
 const github = new GitHubApi({
 	debug: false
@@ -20,7 +39,7 @@ const github = new GitHubApi({
 
 github.authenticate({
 	type: "token",
-	token: process.env.GITHUB_TOKEN
+	token: GITHUB_TOKEN
 });
 
 // Create express app
@@ -41,31 +60,37 @@ app.post("/github-hook", (req, res) => {
 	if (event == "pull_request") {
 		processPullRequest(req.body, req.headers);
 	}
-	else if (event == "push") {
-		processPush(req.body, req.headers);
-	}
 
 	res.sendStatus(200);
 });
 
-const port = 4278;
-app.listen(port, function() {
-	console.log("Developer server running on http://localhost:" + port);
+const port = process.env.PORT || 4278;
+const ip = process.env.IP || "127.0.0.1";
+app.listen(port, ip, function() {
+
+	console.log("");
+	console.log(chalk.green.bold("*** Web hook server is running on"));
+	console.log(chalk.green.bold("*** "));
+	console.log(chalk.white.bold(`*** http://${ip}:${port}/github-hook`));
+	console.log(chalk.green.bold("*** "));
+	console.log(chalk.green.bold("*** Set this URL in Webhooks in Github settings and enable the 'Pull request' events!"));
+	console.log(chalk.green.bold(""));
 });
 
 function processPullRequest(payload) {
-	console.log("PR event!");
+	console.log("New pull-request event received!\n");
 	const prNumber = payload.number;
+
 	if (["opened", "synchronize"].indexOf(payload.action) !== -1) {
-		console.log(`New PR opened! ID: ${prNumber}, Name: ${payload.pull_request.title}`);
+		console.log(chalk.white.bold(`New PR opened! ID: ${prNumber}, Name: ${payload.pull_request.title}`));
 
 		const headGitUrl = payload.pull_request.head.repo.clone_url; // PR repo-ja
 		const headGitBranch = payload.pull_request.head.ref; // PR branch-e
 		const baseGitUrl = payload.pull_request.base.repo.clone_url; // Alap master repo
 		const baseGitBranch = payload.pull_request.base.ref; // Alap repo branch-e
 
-		console.log("Master: ", baseGitUrl, ", Branch: ", baseGitBranch);
-		console.log("PR: ", headGitUrl, ", Branch: ", headGitBranch);
+		console.log("Base: ", chalk.white.bold(baseGitUrl), "  Branch: ", chalk.magenta.bold(baseGitBranch));
+		console.log("  PR: ", chalk.white.bold(headGitUrl), "  Branch: ", chalk.magenta.bold(headGitBranch));
 
 		let workID = Math.random().toString(36).replace(/[^a-z]+/g, '');
 		console.log("Work ID: " + workID);
@@ -79,7 +104,7 @@ function processPullRequest(payload) {
 		let prFolder = path.join(folder, "pr");
 		mkdir.sync(prFolder);
 
-		runBenchmark(baseGitUrl, baseGitBranch, masterFolder).then(masterResult => {
+		return runBenchmark(baseGitUrl, baseGitBranch, masterFolder).then(masterResult => {
 			return runBenchmark(headGitUrl, headGitBranch, prFolder).then(prResult => {
 				return compareResults(masterResult, prResult);
 			});
@@ -88,31 +113,27 @@ function processPullRequest(payload) {
 			// console.log("Compare result:", compared);
 
 			// Create comment on PR
-			addCommentToPR(prNumber, compared);
+			return addCommentToPR(prNumber, compared);
 		})
+		.then(() => {
+			console.log(chalk.green.bold("Done!"));
+		})
+		.catch(err => console.error(err))
 		.then(() => {
 			// Delete tmp folder
 			return del([folder]);
-		})
-		.then(() => {
-			console.log("Done!");
-		})
-		.catch(err => console.error(err));
+		});
 	}
-}
 
-function processPush(payload) {
-	console.log("Push event!");
+	return Promise.resolve();
 }
 
 function runBenchmark(gitUrl, branch, folder) {
-	return Promise.resolve()
-		.then(() => {
-			return exeq("git clone " + gitUrl + " " + folder, "cd " + folder, "git checkout " + branch, "npm i --quiet")
-				.then(msgs => {
-					return require(path.join(__dirname, folder, SUITE_FILENAME));
-				});
+	return Promise.resolve().then(() => {
+		return exeq("git clone " + gitUrl + " " + folder, "cd " + folder, "git checkout " + branch, "npm i --quiet").then(msgs => {
+			return require(path.join(__dirname, folder, SUITE_FILENAME));
 		});
+	});
 }
 
 function formatNum(num, decimals = 0, addSign = false) {
@@ -165,18 +186,17 @@ function compareResults(masterResult, prResult) {
 
 				testCompare.diff = formatNum(prRps - masterRps, 0, true);
 				testCompare.percentage = percentage;
-				testCompare.badge = `https://img.shields.io/badge/performance-${percentage.replace('-', '--')}%25-${getBadgeColor(percent)}.svg`;
+				testCompare.badge = `https://img.shields.io/badge/performance-${percentage.replace("-", "--")}%25-${getBadgeColor(percent)}.svg`;
 			} else {
 				testCompare.diff = "-";
-				testCompare.percentage = "";
-				testCompare.badge = `https://img.shields.io/badge/performance-skipped-lightgrey.svg`;
+				testCompare.percentage = "skipped";
+				testCompare.badge = "https://img.shields.io/badge/performance-skipped-lightgrey.svg";
 			}
 
 			suiteRes.tests.push(testCompare);
 		});
 
 		comparedResult.suites.push(suiteRes);
-
 	});
 
 	return Promise.resolve(comparedResult);
@@ -232,147 +252,7 @@ function addCommentToPR(number, result) {
 		repo: REPO_NAME,
 		number,
 		body: commentTemplate(result)
+	}).then(() => {
+		console.info(chalk.yellow.bold(`"Result posted successfully to https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${number}!`));
 	});
 }
-/*
-
-compareResults(
-{
-  "name": "Simple example",
-  "suites": [
-    {
-      "name": "String concatenate",
-      "tests": [
-        {
-          "name": "Concat with '+'",
-          "fastest": true,
-          "stat": {
-            "duration": 5.007086467,
-            "cycle": 153,
-            "count": 153000,
-            "avg": 0.00003272605533986928,
-            "rps": 30556.692201816535,
-            "percent": 81.51821774001732
-          }
-        },
-        {
-          "name": "Concat with array & join",
-          "reference": true,
-          "stat": {
-            "duration": 5.051803217,
-            "cycle": 90,
-			"count": 90000,
-            "avg": 0.00005613114685555555,
-            "rps": 17387.420778295134,
-            "percent": 0
-          }
-        }
-      ]
-    },
-    {
-      "name": "Increment integer",
-      "tests": [
-        {
-          "name": "Increment with ++",
-          "fastest": true,
-          "stat": {
-            "duration": 4.999928158,
-            "cycle": 333918,
-            "count": 333918000,
-            "avg": 1.4973520918309286e-8,
-            "rps": 66784559.58726597,
-            "percent": 0
-          }
-        },
-        {
-          "name": "Increment with +=",
-          "skipped": true
-        },
-        {
-          "name": "Increment with = i + 1",
-          "stat": {
-            "duration": 4.998890598,
-            "cycle": 325496,
-            "count": 325496000,
-            "avg": 1.5357763530120187e-8,
-            "rps": 65113647.44213992,
-            "percent": -2.501943795770188
-          }
-        }
-      ]
-    }
-  ],
-  "timestamp": 1491573679617,
-  "generated": "Fri Apr 07 2017 16:01:19 GMT+0200 (Közép-európai nyári idő )",
-  "elapsedMs": 20902
-},{
-  "name": "Simple example",
-  "suites": [
-    {
-      "name": "String concatenate",
-      "tests": [
-        {
-          "name": "Concat with '+'",
-          "fastest": true,
-          "stat": {
-            "duration": 5.007086467,
-            "cycle": 153,
-            "count": 153000,
-            "avg": 0.00003272605533986928,
-            "rps": 30556.692201816535,
-            "percent": 71.51821774001732
-          }
-        },
-        {
-          "name": "Concat with array & join",
-          "reference": true,
-          "stat": {
-            "duration": 5.051803217,
-            "cycle": 90,
-			"count": 90000,
-            "avg": 0.00005613114685555555,
-            "rps": 17815.420778295134,
-            "percent": 0
-          }
-        }
-      ]
-    },
-    {
-      "name": "Increment integer",
-      "tests": [
-        {
-          "name": "Increment with ++",
-          "fastest": true,
-          "stat": {
-            "duration": 4.999928158,
-            "cycle": 333918,
-            "count": 333918000,
-            "avg": 1.4973520918309286e-8,
-            "rps": 66784559.58726597,
-            "percent": 0
-          }
-        },
-        {
-          "name": "Increment with +=",
-          "skipped": true
-        },
-        {
-          "name": "Increment with = i + 1",
-          "stat": {
-            "duration": 4.998890598,
-            "cycle": 325496,
-            "count": 325496000,
-            "avg": 1.5357763530120187e-8,
-            "rps": 65113647.44213992,
-            "percent": -2.501943795770188
-          }
-        }
-      ]
-    }
-  ],
-  "timestamp": 1491573679617,
-  "generated": "Fri Apr 07 2017 16:01:19 GMT+0200 (Közép-európai nyári idő )",
-  "elapsedMs": 20902
-}).then(res => {
-	console.log("Res:",JSON.stringify(res, null, 2));
-});*/
